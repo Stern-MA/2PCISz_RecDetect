@@ -599,8 +599,10 @@ end
 if PIS_On==1
 if isnan(MeanSzRecTimeG)
     RecTimeG_PIS=IndivRecTimes3pre(Fc1Gdff_flt2,EEG_PIS_times2,fs_2p,20,1,4);%fed the EEG PIS times
+    RecTimeR_PIS=IndivRecTimes3pre(-Fc1Rdff_flt2,EEG_PIS_times2,fs_2p,20,1,4);
 else
     RecTimeG_PIS=IndivRecTimes3pre(Fc1Gdff_flt2(:,1:MeanSzRecTimeG*fs_2p),EEG_PIS_times2,fs_2p,20,1,4);%fed the EEG PIS times
+    RecTimeR_PIS=IndivRecTimes3pre(-Fc1Rdff_flt2(:,1:MeanSzRecTimeG*fs_2p),EEG_PIS_times2,fs_2p,20,1,4);
 end
 
 %Refine Spikes with min 10% recruitment of cells in each channel

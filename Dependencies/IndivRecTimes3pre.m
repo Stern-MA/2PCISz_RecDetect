@@ -1,14 +1,31 @@
 % Determine PREICTAL Recruitment Times - Individual traces
 
-%this script take a matrix of calcium traces (cells by row, time by column)
-%and a vector of seeds time for an event (e.g. pre-ictal spikes) and finds the 'elbow' of
-%the trace closest to that event time for each trace. The elbow is the
-%beginning of the block of time where the integral of first deriviate of
+%this script takes a matrix of calcium traces (cells by row, time by column)
+%and a vector of seeds time for an event (e.g. pre-ictal spikes) and finds 
+%the point of recruitment by finding where the integral of first deriviate of
 %the trace is largest (selecting for the longest sustatined and steepist slope).
 %
-%This script can calc the recTime by first (max slope) or second derivative
-%(max concavity) use Dflag varaible to indicate which derivative to use
+%This script can calculate the recTime by first (max slope) or second derivative
+%(max concavity). Use Dflag varaible to indicate which derivative to use
 %('1' or '2').
+%
+%Inputs:
+%CaTraceMatrix: matrix of calcium traces (cells by row, time by column)
+%SeedTimeVec: vector of seeds time for an event (e.g. pre-ictal spikes)
+%fs_2p: sampling frequency of 2p imaging
+%topP: percentage of top cells to include in the selection of traces close to the seed times
+%Dflag: Indicates which feature to index by (1:max slope or 2: max concavity (elbow))
+%StDevX: Standard deviations for peak height threshold
+%
+%Output Structure Fields:
+%v1: all potential recruitment times
+%v2: filtering out the recTimes based upon needed to exceed the integral of a theoretical gaussian of baseline
+%v3: fitlering out the recTimes based upon needign to exceed a peak threshold
+
+% Version 231116 Matthew A. Stern and Eric R. Cole, Emory University
+% Contact: matthew.a.stern@emory.edu or matt@matthewastern.com
+%
+% If using this code please cite our work.
 
 function RecT=IndivRecTimes3pre(CaTraceMatrix,SeedTimeVec,fs_2p,topP,Dflag,StDevX)
 
@@ -19,12 +36,6 @@ end
 
 %define trace matrix
 Fc1Gdff_flt2=CaTraceMatrix;
-%weight trace by gaussian around seizure start time
-% trace1=1:size(CaTraceMatrix,2);
-% sigma1=10;%in seconds
-% gauss1=exp(-(trace1-SeedTime*fs_2p).^2/(sigma1*fs_2p)^2);
-% %Fc1Gdff_flt2=CaTraceMatrix.*gauss1;
-
 
 %calculate the derivates of the filtered traces
 Fc1Gdff_flt2_df=diff(Fc1Gdff_flt2,1,2);
@@ -46,7 +57,7 @@ clear ii
 %integrate over blocks
 temp4G=cell(size(temp2G,1),1);
 maxDFwin=cell(size(temp2G,1),1);
-for ii=1:length(temp4G) %GREEN
+for ii=1:length(temp4G)
     if temp3G{ii,1}(1)>temp3G{ii,2}(1)%correct for first slope value index being negative
         temp3G{ii,2}=temp3G{ii,2}(2:end);
     end
@@ -65,7 +76,7 @@ for ii=1:length(temp4G) %GREEN
 end
 clear ii jj
 
-% find maximum block and pull boundariy indices of that block
+% find maximum block and pull boundary indices of that block
 % find each largest value in each cell array and then use this to index into temp3 to find the index (time point) of the seizure in the origional trace
 temp5G=cell(size(temp2G,1),1);%gives the block in each cell that is seizure
 RecTimes=nan(size(temp2G,1),length(SeedTimeVec));
@@ -100,7 +111,7 @@ end
 clear ii
 
 
-%Filter out Traces not within window for calcium
+%Filter out traces not within window for calcium
 EventWin=1.25; %seconds
 
 if size(RecTimes,2)==size(SeedTimeVec,2)
@@ -120,16 +131,14 @@ for ii=1:size(RecTimes,1)%loop over cells
     for jj=1:size(RecTimes,2)%loop over spikes
         if ~isnan(RecTimes(ii,jj)) 
             if RecTimes(ii,jj)+EventWin<size(CaTraceMatrix,2)/fs_2p
-                tempTrace=CaTraceMatrix(ii,RecTimes(ii,jj)*fs_2p:(RecTimes(ii,jj)+EventWin)*fs_2p);%window for integration and peak finding
-                valGauss(ii,jj)=trapz(tempTrace-min(tempTrace));
-                peakPIS(ii,jj)=max(tempTrace);
-                %meanPIS(ii,jj)=mean(CaTraceMatrix(ii,(RecTimes(ii,jj)-EventWin)*fs_2p+1:(RecTimes(ii,jj)+EventWin)*fs_2p));
+                tempTrace=CaTraceMatrix(ii,round(RecTimes(ii,jj)*fs_2p):round((RecTimes(ii,jj)+EventWin)*fs_2p));%window for integration and peak finding
+                valGauss(ii,jj)=trapz(tempTrace-min(tempTrace));% integration of each spike
+                peakPIS(ii,jj)=max(tempTrace); %peak amplitude of each spike
                 clear tempTrace
             else
-                tempTrace=CaTraceMatrix(ii,RecTimes(ii,jj)*fs_2p:end);
+                tempTrace=CaTraceMatrix(ii,round(RecTimes(ii,jj)*fs_2p):end);
                 valGauss(ii,jj)=trapz(tempTrace-min(tempTrace));
                 peakPIS(ii,jj)=max(tempTrace);
-                %meanPIS(ii,jj)=mean(CaTraceMatrix(ii,(RecTimes(ii,jj)-EventWin)*fs_2p+1:end);
                 clear tempTrace
             end
         end
@@ -137,27 +146,22 @@ for ii=1:size(RecTimes,1)%loop over cells
 end
 clear ii jj
 
-
-stdThreshTraceSort=sort(CaTraceMatrix(:,(SeedTimeVec(1)-10)*fs_2p:end),2);
-%CaSTDthresh=std(CaTraceMatrix(:,(SeedTimeVec(1)-10)*fs_2p:end),[],2);
-CaSTDthresh=std(stdThreshTraceSort(:,1:size(stdThreshTraceSort,2)/2),[],2);
+while SeedTimeVec(1)-10<0
+    SeedTimeVec=SeedTimeVec(2:end);
+end
+stdThreshTraceSort=sort(CaTraceMatrix(:,floor((SeedTimeVec(1)-10)*fs_2p):end),2);
+CaSTDthresh=std(stdThreshTraceSort(:,1:ceil(size(stdThreshTraceSort,2)/2)),[],2);
 CaGaussThresh=2.5*CaSTDthresh*fs_2p/2/0.3989;%gaussian threshhold with height=std of preictal period, sigma=1/2 second in frames (2s width at 2 sigma two tail)
-CaPeakThresh=mean(CaTraceMatrix(:,(SeedTimeVec(1)-10)*fs_2p:end),2)+StDevX*CaSTDthresh;
-%CaMaxThresh=0.25*max(CaTraceMatrix-min(CaTraceMatrix,[],2),[],2);
-%CaPeakThresh=mean(stdThreshTraceSort(:,1:size(stdThreshTraceSort,2)/2),2)+StDevX*CaSTDthresh;
+CaPeakThresh=mean(CaTraceMatrix(:,floor((SeedTimeVec(1)-10)*fs_2p):end),2)+StDevX*CaSTDthresh;
 
 RecTimes2=RecTimes;
-%RecTimes3=RecTimes;
 
 RecTimes(valGauss<repmat(CaGaussThresh,1,size(RecTimes,2)))=NaN;
 RecT.v2=RecTimes;
 
-RecTimes2(peakPIS<repmat(CaPeakThresh,1,size(RecTimes2,2)))=NaN;%ATTEMPTING TO FIX DETECTION
+RecTimes2(peakPIS<repmat(CaPeakThresh,1,size(RecTimes2,2)))=NaN;
 
 RecT.v3=RecTimes2;
 
-%RecTimes3(peakPIS<repmat(CaMaxThresh,1,size(RecTimes2,2)))=NaN;
-
-%RecT.v4=RecTimes3;
 
 

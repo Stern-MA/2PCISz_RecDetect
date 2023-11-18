@@ -342,7 +342,7 @@ line([EEG_spkTimes_prelim;EEG_spkTimes_prelim],repmat([3;3.75],1,length(EEG_spkT
 %line([EEG_spkTimes_prelim1;EEG_spkTimes_prelim1],repmat([2.75;3.5],1,length(EEG_spkTimes_prelim1)),'color',[1 0 0],'linewidth',1)
 line([EEG_PIS_times2;EEG_PIS_times2],repmat([2;2.75],1,length(EEG_PIS_times2)),'color',[0 0 1],'linewidth',1)
 
-%% plot mean calcium and EEG
+%%
 figure
 plot(t_eeg_ictalFront,EEG(ictalFront_start_eeg:ictalFront_end_eeg)./1000+3,'color',[0.7 0.7 0.7]);
 hold on
@@ -392,7 +392,7 @@ line([0,EEG_ts(end)],[5*std(EEGswdConv(1:MeanSzRecTimeG*fs_eeg)/10^7),5*std(EEGs
 line([EEGswd_spikeTimes;EEGswd_spikeTimes],repmat([1;2],1,length(EEGswd_spikeTimes)),'color',[1 0 0],'linewidth',.5)
 
 
-%% Spectral power relative to Ca signal
+%%
 
 PSD_maxF=200;
 PSD_ylim=find(PSD_F<PSD_maxF,1,'last');
@@ -403,6 +403,7 @@ shading flat
 colormap(jet)
 %ylim([0.5,50])
 %colorbar
+
 
 subplot(2,1,2)
 plot(EEG_ts,EEG.*10+30000,'color',[0.7 0.7 0.7]);
@@ -415,15 +416,30 @@ plot(F1_ts,Fc1Gdff_flt1_Mean.*10000,'color', [0 1 0]);
 % plot(PSDwin/2:PSDwin/2:PSDwin*numel(EEGstart)/2,PSD_100less,'color',[0 0 1])
 % plot(PSDwin/2:PSDwin/2:PSDwin*numel(EEGstart)/2,Ratio100.*10000,'color',[0 1 0])
 line([MeanSzRecTimeG;MeanSzRecTimeG],[0;50000],'color',[0 .7 0],'LineWidth',.5)
+line([MeanSzRecTimeR;MeanSzRecTimeR],[0;50000],'color',[.7 0 .7],'LineWidth',.5)
 if death==1
     line([deathTime;deathTime],[0;50000],'color',[.5 0 0],'linewidth',2)
 end
 
+    
+
+
+
+%%
+figure
+scatter(RecTimeGsortReG2(isRecruitedG),1:length(RecTimeGsortReG2(isRecruitedG)),10,[0 1 0],'filled')
+hold on
+scatter(RecTimeRsortReR2(isRecruitedR),1:length(RecTimeRsortReR2(isRecruitedR)),10,[1 0 1],'filled')
+title('Ordered with Respect to Recruitment')
+xlabel('Times (s)')
+ylabel('Neurons')
+
 
 %% to write figure with sz recruitment times inserted
-tempG=Fc1Gdff_flt2;
+tempG=Fc1Gdff_flt2; tempR=Fc1Rdff_flt2;
 
 figure
+subplot(1,2,1)
 plot(t_eeg_ictalFront,EEG(ictalFront_start_eeg:ictalFront_end_eeg)./1000+3,'color',[0.7 0.7 0.7]);
 hold on
 for ii=1:size(Fc1Gdff_flt2,1)
@@ -435,14 +451,32 @@ for ii=1:size(Fc1Gdff_flt2,1)
     line([RecTimeG_sz2(ii)/60;RecTimeG_sz2(ii)/60],repmat([ii*10;ii*10+1],1,2),'color',[0 0 1],'LineWidth',2)
     line([MeanSzRecTimeG/60;MeanSzRecTimeG/60],repmat([0;2000],1,2),'color',[0.5 0.5 0.5],'LineStyle','-.','LineWidth',.5)
 end
+
+subplot(1,2,2)
+plot(t_eeg_ictalFront,EEG(ictalFront_start_eeg:ictalFront_end_eeg)./1000+3,'color',[0.7 0.7 0.7]);
+hold on
+for jj=1:size(Fc1Rdff_flt2,1)
+    if isRecruitedR(jj)==1
+        plot(t_2p_ictalFront,tempR(jj,ictalFront_start_2p:ictalFront_end_2p)+jj*6,'color',[1 0.25 1]);
+    else
+        plot(t_2p_ictalFront,tempR(jj,ictalFront_start_2p:ictalFront_end_2p)+jj*6,'color',[1 0.75 1]);
+    end
+    line([RecTimeR_sz2(jj)/60;RecTimeR_sz2(jj)/60],repmat([jj*6;jj*6+1],1,2),'color',[0 0 1],'LineWidth',2)
+    line([MeanSzRecTimeR/60;MeanSzRecTimeR/60],repmat([0;750],1,2),'color',[0.5 0.5 0.5],'LineStyle','-.','LineWidth',.5)
+end
+%ylim([-6.5 5])
+%xlim([6 7])
 hold off
-clear ii tempG
+clear ii jj
+
+clear tempG tempR
 
 
-%% pre ictal individual ploting
-tempG=Fc1Gdff_flt2;
-
+%% pre ictal indiv ploting
+tempG=Fc1Gdff_flt2; tempR=Fc1Rdff_flt2;
+%tempG=Fc1Gdff_flt1; tempR=Fc1Rdff_flt1;
 figure
+subplot(1,2,1)
 plot(EEG_ts,EEG./1000+3,'color',[0.7 0.7 0.7]);
 hold on
 for ii=1:size(Fc1Gdff_flt2,1)
@@ -454,5 +488,68 @@ for ii=1:size(Fc1Gdff_flt2,1)
 end
 line([EEG_PIS_times2;EEG_PIS_times2],repmat([0;size(Fc1Gdff_flt2,1)*10],1,size(EEG_PIS_times2,2)),'color',[0.8 0.8 0.8],'LineWidth',.5)
 
+subplot(1,2,2)
+plot(EEG_ts,EEG./1000+3,'color',[0.7 0.7 0.7]);
+hold on
+for ii=1:size(Fc1Rdff_flt2,1)
+    plot(F1_ts,tempR(ii,:)+ii*10,'color', [1 0 1]);
+    line([RecTimeR_PIS.v1(ii,:);RecTimeR_PIS.v1(ii,:)],repmat([ii*10+1;ii*10+1.75],1,size(RecTimeR_PIS.v1,2)),'color',[0 0 0],'LineWidth',1)
+    line([RecTimeR_PIS.v2(ii,:);RecTimeR_PIS.v2(ii,:)],repmat([ii*10+2;ii*10+2.75],1,size(RecTimeR_PIS.v2,2)),'color',[1 0 0],'LineWidth',1)
+    line([RecTimeR_PIS.v3(ii,:);RecTimeR_PIS.v3(ii,:)],repmat([ii*10+3;ii*10+3.75],1,size(RecTimeR_PIS.v3,2)),'color',[0 0 1],'LineWidth',1)
 
+end
+line([EEG_PIS_times2;EEG_PIS_times2],repmat([0;size(Fc1Rdff_flt2,1)*10],1,size(EEG_PIS_times2,2)),'color',[0.8 0.8 0.8],'LineWidth',.5)
+
+%% Z-scored individual trace plotting
+tempG=Fc1Gdff_flt2; tempR=Fc1Rdff_flt2;
+tempGmean1=mean(tempG(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeG*fs_2p),2);
+tempRmean1=mean(tempR(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeR*fs_2p),2);
+tempGstd1=std(tempG(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeG*fs_2p),[],2);
+tempRstd1=std(tempR(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeR*fs_2p),[],2);
+tempGstd=sort(tempG(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeG*fs_2p),2);
+tempRstd=sort(tempR(:,(EEG_PIS_times2(1)-10)*fs_2p:MeanSzRecTimeR*fs_2p),2);
+tempGmean=mean(tempGstd(:,1:size(tempGstd,2)/2),2);
+tempRmean=mean(tempRstd(:,1:size(tempRstd,2)/2),2);
+tempGstd=std(tempGstd(:,1:size(tempGstd,2)/2),[],2);
+tempRstd=std(tempRstd(:,1:size(tempRstd,2)/2),[],2);
+
+tempGz=(tempG-tempGmean)./tempGstd;
+tempRz=(tempR-tempRmean)./tempRstd;
+
+%tempG=Fc1Gdff_flt1; tempR=Fc1Rdff_flt1;
+figure
+subplot(1,2,1)
+plot(EEG_ts,EEG./1000+3,'color',[0.7 0.7 0.7]);
+hold on
+cc=1;%counter
+for ii=[149,153]%list of ROIs
+    plot(F1_ts,tempG(ii,:)+cc*10-2,'color', [0 .5 0]);
+    plot(F1_ts,tempGz(ii,:)+cc*10,'color', [0 1 0]);
+    line([RecTimeG_PIS.v1(ii,:);RecTimeG_PIS.v1(ii,:)],repmat([cc*10+1;cc*10+1.75],1,size(RecTimeG_PIS.v1,2)),'color',[0 0 0],'LineWidth',1)
+    line([RecTimeG_PIS.v2(ii,:);RecTimeG_PIS.v2(ii,:)],repmat([cc*10+2;cc*10+2.75],1,size(RecTimeG_PIS.v2,2)),'color',[1 0 0],'LineWidth',1)
+    line([RecTimeG_PIS.v3(ii,:);RecTimeG_PIS.v3(ii,:)],repmat([cc*10+3;cc*10+3.75],1,size(RecTimeG_PIS.v3,2)),'color',[0 0 1],'LineWidth',1)
+    line([0;EEG_ts(end)],[cc*10+tempGmean(ii)+4*tempGstd(ii)-2;cc*10+tempGmean(ii)+4*tempGstd(ii)-2],'color',[0.8 0.8 0.8],'LineWidth',.5)
+    cc=cc+1;
+end
+line([EEG_PIS_times2;EEG_PIS_times2],repmat([0;cc*10],1,size(EEG_PIS_times2,2)),'color',[0.8 0.8 0.8],'LineWidth',.5)
+clear ii cc
+
+
+subplot(1,2,2)
+cc=1;%counter
+plot(EEG_ts,EEG./1000+3,'color',[0.7 0.7 0.7]);
+hold on
+for ii=[21,36]%list of ROIs
+    plot(F1_ts,tempR(ii,:)+cc*10-2,'color', [.5 0 .5]);
+    plot(F1_ts,tempRz(ii,:)+cc*10,'color', [1 0 1]);
+    line([RecTimeR_PIS.v1(ii,:);RecTimeR_PIS.v1(ii,:)],repmat([cc*10+1;cc*10+1.75],1,size(RecTimeR_PIS.v1,2)),'color',[0 0 0],'LineWidth',1)
+    line([RecTimeR_PIS.v2(ii,:);RecTimeR_PIS.v2(ii,:)],repmat([cc*10+2;cc*10+2.75],1,size(RecTimeR_PIS.v2,2)),'color',[1 0 0],'LineWidth',1)
+    line([RecTimeR_PIS.v3(ii,:);RecTimeR_PIS.v3(ii,:)],repmat([cc*10+3;cc*10+3.75],1,size(RecTimeR_PIS.v3,2)),'color',[0 0 1],'LineWidth',1)
+    line([0;EEG_ts(end)],[cc*10+tempRmean(ii)+4*tempRstd(ii)-2;cc*10+tempRmean(ii)+4*tempRstd(ii)-2],'color',[0.8 0.8 0.8],'LineWidth',.5)
+    cc=cc+1;
+end
+line([EEG_PIS_times2;EEG_PIS_times2],repmat([0;cc*10],1,size(EEG_PIS_times2,2)),'color',[0.8 0.8 0.8],'LineWidth',.5)
+clear ii cc
+
+%clear tempG* tempR*
 

@@ -1,12 +1,26 @@
-% Determine Seizure Recruitment Times individual traces 
+% Determine Seizure related wavefront recruitment times in individual
+% traces of calcium data
 % *** version using MAX SLOPE time indexing
 
 %this script take a matrix of calcium traces (cells by row, time by column)
-%and a seed time for an event (e.g. CSD or Seizure) and finds the maximum
+%and a seed time for an event (e.g. TSW or Seizure) and finds the maximum
 %period where the integral of first deriviative (positive portions only) 
 %of the trace is largest (selecting for the longest sustatined and steepist
-%slope). It weighs these features by a guassian kernel (sigmal 1) centered
+%slope). It weighs these features by a guassian kernel (sigmal1) centered
 %at the seed time.
+
+%Inputs:
+%CaTraceMatrix: matrix of calcium traces (cells by row, time by column)
+%SeedTime: seed time for an event (e.g. TSW or Seizure)
+%fs_2p: sampling frequency of 2p imaging
+%sigma1: Standard deviations for width of gaussian weighting
+%
+%Output Structure Fields:
+%time: recruitment times
+%value: slope integral value of trace at recruitment 
+
+% Version 231116 Matthew A. Stern and Eric R. Cole, Emory University
+% Contact: matthew.a.stern@emory.edu or matt@matthewastern.com
 
 function RecTimes=IndivRecTimes3(CaTraceMatrix,SeedTime,fs_2p,sigma1)
 
@@ -52,19 +66,19 @@ for ii=1:length(temp4G) %GREEN
     end
     %recalculate block index times based upon max slope time 
     temp5G{ii,1}=temp3G{ii,1}+maxDFwin{ii}(:,2)';
-    %recalcualte the features weighted by the gaussian kernel
+    %recalculate the features weighted by the gaussian kernel
     temp6G{ii,1}=temp4G{ii}.*gauss1(temp5G{ii,1});
 end
 clear ii jj
 
-% find maximum block and pull boundariy indices of that block
+% find maximum block and pull boundary indices of that block
 % find each largest value in each cell array and then use this to index into temp5 to find the index (time point) of the seizure in the origional trace
 
 RecTimeG_sz=nan(size(temp2G,1),1);
 RecTimeG_val=nan(size(temp2G,1),1);
 
 for ii=1:size(temp2G,1)
-    % sorting to find top % of values
+    % sorting to find top value
     [~, feats_maxI] = max(temp6G{ii,1});
     RecTimeG_sz(ii) = (temp5G{ii,1}(feats_maxI)+1)/fs_2p;
     RecTimeG_val(ii) = temp4G{ii}(feats_maxI);

@@ -1,5 +1,11 @@
 %This function reads a Pinnacle EEG file in EDF format along with an 
 %annotation file in txt format and partitions the EEG file into segments
+%Paritioning occurs by taking the EEG segment starting at every odd 
+%numbered pulse and ending with the subsequent event pulse .
+%Output:
+%Cell array where each cell is a row vector of the EEG segment between TTL
+%pulses.
+
 %Created 210918-Matthew A. Stern
 %Current Update: 210919-MAS
 

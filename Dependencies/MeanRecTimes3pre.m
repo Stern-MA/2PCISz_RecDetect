@@ -1,24 +1,27 @@
 % Determine PREICTAL Recruitment Times - Mean traces
 
 %this script take a matrix of calcium traces (cells by row, time by column)
-%and a seed time for an event (e.g. CSD or Seizure) and finds a) the point of steepest recruitment of
-%the trace closest to that event time for each trace (column 1), or finds the 'elbow',  the
-%beginning of the block of time where the integral of first deriviate of
-%the trace is largest (selecting for the longest sustatined and steepist slope) stored in column 2.
-%the feature value of the slope can be found in column 3 and that
-%normalized ot the max value of that feature can be found in column 4.
+%and finds the points (top percentage: TopP) of steepest recruitment of the 
+%trace using the slope integral feature (selecting for the longest 
+%sustatined and steepist slope). It then indexes these regions by the point
+%of steepest slope (column 1), or the elbow of recruitment (the max 
+%concavity; 2nd derviative; column 2). 
+%
+%Outputs cell array columns"
+% 1: Recruitment time by max slope
+% 2: Recruitment time by max concavity
+% 3: feature value of the slope integral 
+% 4: normalized slope integral feature to the max value of that feature
+
+% Version 231116 Matthew A. Stern and Eric R. Cole, Emory University
+% Contact: matthew.a.stern@emory.edu or matt@matthewastern.com
+%
+% If using this code please cite our work.
 
 function RecTimes=MeanRecTimes3pre(CaTraceMatrix,fs_2p,topP)
 
 %define trace matrix
 Fc1Gdff_flt2=CaTraceMatrix;
-%weight trace by gaussian around seizure start time
-% trace1=1:size(CaTraceMatrix,2);
-% sigma1=10;%in seconds
-% gauss1=exp(-(trace1-SeedTime*fs_2p).^2/(sigma1*fs_2p)^2);
-% %Fc1Gdff_flt2=CaTraceMatrix.*gauss1;
-
-
 
 %calculate the derivates of the filtered traces
 Fc1Gdff_flt2_df=diff(Fc1Gdff_flt2,1,2);
@@ -40,7 +43,7 @@ clear ii
 %integrate over blocks
 temp4G=cell(size(temp2G,1),1);
 maxDFwin=cell(size(temp2G,1),1);
-for ii=1:length(temp4G) %GREEN
+for ii=1:length(temp4G)
     if temp3G{ii,1}(1)>temp3G{ii,2}(1)%correct for first slope value index being negative
         temp3G{ii,2}=temp3G{ii,2}(2:end);
     end
@@ -61,7 +64,7 @@ for ii=1:length(temp4G) %GREEN
 end
 clear ii jj
 
-% find maximum block and pull boundariy indices of that block
+% find maximum block and pull boundary indices of that block
 % find each largest value in each cell array and then use this to index into temp3 to find the index (time point) of the seizure in the origional trace
 temp5G=cell(size(temp2G,1),1);%gives the block in each cell that is seizure
 RecTimeG=nan(size(temp2G,1),1);
@@ -80,14 +83,6 @@ for ii=1:size(temp2G,1)
     %recalculate block index times based upon max slope time 
     temp5G{ii,1}=temp3G{ii,1}+maxDFwin{ii}(:,2)';
     temp6G{ii,1}=temp3G{ii,1}+maxD2Fwin{ii}(:,2)';
-    
-%     [time_min, time_min_ind] = min(abs((temp3G{ii,1}(feats_sorted_inds))/fs_2p - SeedTime));
-%     [time_min2, time_min_ind2] = min(abs((temp5G{ii,1}(feats_sorted_inds))/fs_2p - SeedTime));
-%     
-%     RecTimeG_sz(ii) = (temp3G{ii,1}(feats_sorted_inds(time_min_ind))+1)/fs_2p;
-%     RecTimeG_sz2(ii) = (temp5G{ii,1}(feats_sorted_inds(time_min_ind2))+1)/fs_2p;
-%     RecTimeG_sz3(ii) = (temp3G{ii,1}(feats_sorted_inds(time_min_ind2))+1)/fs_2p;
-%     %RecTimeG_sz2(ii) = RecTimeG_sz(ii)+maxDFwin{ii}(feats_sorted_inds(time_min_ind),2)/fs_2p;
     RecTimes{ii,1}=(temp5G{ii,1}(feats_sorted_inds)+1)/fs_2p;
     RecTimes{ii,2}=(temp6G{ii,1}(feats_sorted_inds)+2)/fs_2p;%use +2 to correct for diff 2nd deriv
     RecTimes{ii,3}=feats_sorted;
