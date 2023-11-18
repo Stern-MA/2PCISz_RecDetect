@@ -10,7 +10,7 @@ MATLAB script to process suite2P .m output files along with EEG data in .edf for
 
 ### SzRecTime_ProcessingPlots.m
 
-Companion MATLAB script for plotting the processing interim outputs stepwise.
+Companion MATLAB script for plotting the processing interim outputs stepwise
 
 
 ### Dependencies
@@ -18,9 +18,12 @@ Companion MATLAB script for plotting the processing interim outputs stepwise.
 Directory for MATLAB functions needed for the above processing
 
 
+### ManualLabelGUI
+
+Directory for MATLAB scripts for our manual seizure event labeler GUI and an accompanying script to plot outputs
+
+
 ### ExampleData.zip
 
 Compressed Directory with data from an example seizure recording
 
-
-#### Code will be annotated and polished prior to manuscript publication.
