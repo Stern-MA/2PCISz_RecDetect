@@ -327,12 +327,6 @@ max_dff = max(mean_dff);
 range_dff = max(mean_dff) - min(mean_dff);
 
 figure('Position', [200 200 1000 800])
-% subplot(4,1,1)
-% hold on
-% mouse1 = image(i1,'xdata',[0 .2],'ydata',[0.5 1]);
-% mouse2 = image(i1,'xdata',[0 .2],'ydata',[0 0.5]);
-% image(i2,'xdata',[0.8 1],'ydata',[0 0.9])
-% xlim([0 1]); ylim([0 1])
 subplot(5,1,1)
 mouse1 = image(i1,'xdata',[0 .15],'ydata',[0.2 0.7]);
 hold on; 
@@ -343,7 +337,7 @@ image(i2,'xdata',[0.9 1],'ydata',[0 0.9])
 yticks([0.5])
 yticklabels({''})
 xticklabels([])
-m1_pos = 0; m2_pos = 0;
+m1_pos = 0;
 
 subplot(5,1,2)
 plot(t_eeg, data.EEG/1000 + max_dff+1,'k')
@@ -468,15 +462,12 @@ for kk = cell_ind:n_cells
     
     if m1_pos < 0.9
         delete(mouse1)
-        delete(mouse2)
         
-        m2_pos = progress/100/.2;
-        m1_pos = m2_pos + (0.05*rand);
+        m1_pos = progress/100;
         
         subplot(5,1,1)
         hold on
-        mouse1 = image(i1,'xdata',[0 .15]+m1_pos,'ydata',[0 0.5]);
-        mouse2 = image(i1,'xdata',[0 .15]+m2_pos,'ydata',[0.5 1]);
+        mouse1 = image(i1,'xdata',[0 .15]+m1_pos,'ydata',[0.2 0.7]);
         
     end
 end
@@ -628,7 +619,7 @@ yticks([0.5])
 yticklabels({''})
 xticklabels([])
 
-m1_pos = 0; m2_pos = 0;
+m1_pos = 0;
 
 xlims = [start_time, end_time];
 
@@ -693,15 +684,12 @@ while(loop_flag)
     
     if m1_pos < 0.9
         delete(mouse1)
-        delete(mouse2)
         
-        m2_pos = progress/100;
-        m1_pos = m2_pos + (0.05*rand);
+        m1_pos = progress/100;
         
         subplot(4,1,1)
         hold on
-        mouse1 = image(i1,'xdata',[0 .15]+m1_pos,'ydata',[0 0.5]);
-        mouse2 = image(i1,'xdata',[0 .15]+m2_pos,'ydata',[0.5 1]);
+        mouse1 = image(i1,'xdata',[0 .15]+m1_pos,'ydata',[0.2 0.7]);
         
     end
 end
@@ -730,24 +718,3 @@ label_struct.(sprintf('%s_%s',channel,mode)) = event_labeled;
 save(sprintf('%s_labeled.mat',file),'label_struct');
 disp(sprintf('saved %s indiv to struct',mode))
 
-
-
-%% LEGACY CODE
-%% Code used to correct improper indexing in earlier iteration of code
-% %%
-% mode='preictal_mean';
-% tempfunc=@(x) x-1;
-% temp=cellfun(tempfunc,label_struct.(sprintf('%s_%s',channel,mode)).window_inds,'UniformOutput',false);
-% label_struct.(sprintf('%s_%s',channel,mode)).window_inds=temp;
-% %%
-% mode='preictal';
-% for ii=1:length(label_struct.(sprintf('%s_%s',channel,mode)).window_inds)
-%     temp=label_struct.(sprintf('%s_%s',channel,mode)).window_inds{ii};
-%     if ~isempty(temp)
-%         tempfunc=@(x) x-1;
-%         temp2{ii,1}=cellfun(tempfunc,temp,'UniformOutput',false);
-%     else
-%         temp2{ii,1}=[];
-%     end
-% end
-% label_struct.(sprintf('%s_%s',channel,mode)).window_inds=temp2;
