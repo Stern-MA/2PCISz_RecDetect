@@ -298,13 +298,12 @@ clear jj
 % find each largest value in each cell array and then use this to index into temp3 to find the index (time point) of the seizure in the origional trace
 temp5G=cell(1,2);%gives the block in each cell that is seizure
 
+[temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
 %determine the block bounds of the seizure and CSD blocks
 if TSW_On==1
-    [temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
     MeanSzRecTimeG = min(temp3G{1}(temp5G{2}(1:2))+1)/fs_2p;%defines the Sz block as the first block of the top 2 blocks; get the first bound of that block which is the max recruitment time (add 1 due to use of diff fn)
     MeanCSDRecTimeG = max(temp3G{1}(temp5G{2}(1:2))+1)/fs_2p; %defines the CSD block as the last block of the top 2 blocks
 else
-    [temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
     %determine the block bounds of the seizure blocks
     MeanSzRecTimeG = (temp3G{1}(temp5G{2}(1))+1)/fs_2p; %defines the CSD block as the last block of the top 2 blocks
     MeanCSDRecTimeG = NaN;
@@ -321,7 +320,7 @@ clear temp*
 % Iteration 2 (with new max value threshold)
 
 if death==1 %to account for an animal dying the data 1 min beyond death is excluded (1 min is to account for hypoxic wave to propogate uncertatinty in exact time of death)
-    postDeathT=deathTime_2p+fs_2p*60;
+    postDeathT=round(deathTime_2p+fs_2p*60);
     temp1G=FGdff_MeanSm(1:postDeathT)>=mean([min(FGdff_MeanSm(1:postDeathT)),newMaxG]);
 else
     temp1G=FGdff_MeanSm>=mean([min(FGdff_MeanSm),newMaxG]);   
@@ -351,13 +350,11 @@ clear jj
 % find maximum block and pull boundary indices of that block
 % find each largest value in each cell array and then use this to index into temp3 to find the index (time point) of the seizure in the origional trace
 temp5G=cell(1,2);%gives the block in each cell that is seizure
-
+[temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
 %determine the block bounds of the seizure blocks
 if TSW_On==1
-    [temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
     MeanSzRecTimeG = min(temp3G{1}(temp5G{2}(1:2))+1)/fs_2p;%defines the Sz block as the first block of the top 2 blocks; get the first bound of that block which is the max recruitment time (add 1 due to use of diff fn)
 else
-    [temp5G{1},temp5G{2}] = sort(temp4G{1},2,'descend');%sort blocks by size (block index is cell 2)
     MeanSzRecTimeG = (temp3G{1}(temp5G{2}(1))+1)/fs_2p; %defines the CSD block as the last block of the top 2 blocks
 end
 
